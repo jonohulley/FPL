@@ -16,7 +16,6 @@ namespace FantasyPL
 		private static OleDbConnection primaryDatabaseConnection = new OleDbConnection();
 		private static FPL.Static listfull;
 		private static FPL.FullLeague fullLeague;
-		private static FPL.GWData GWStats;
 		public static Dictionary<int, string> teamNames = new Dictionary<int, string>();
 		public static Dictionary<int, string> positionNames = new Dictionary<int, string>();
 		public static Dictionary<int, string> playerNames = new Dictionary<int, string>();
@@ -28,7 +27,6 @@ namespace FantasyPL
 		public static void Main(string[] args)
 		{
 
-			populateStats(254);
 			populateLeague();
 			populateListful();
 			setDictionaries();
@@ -68,8 +66,6 @@ namespace FantasyPL
 				try
 				{
 					primaryDatabaseConnection.Open();
-
-					//events
 					for (int i = 0; i < GWPlayerData.history.Length ; i++)
 					{
 						string CommandText = getGWStatsString(i, GWPlayerData.history);
@@ -78,12 +74,12 @@ namespace FantasyPL
 						updatePlayers.CommandText = CommandText;
 						int NumRows = updatePlayers.ExecuteNonQuery();
 					}
+					primaryDatabaseConnection.Close();
 				}
 				catch (Exception E)
 				{
 					Console.WriteLine("Exception " + E.Message + " Stack trace " + E.StackTrace);
 				}
-
 			}
 			else
 			{
@@ -482,73 +478,6 @@ namespace FantasyPL
 			return elementstring;
 		}
 
-		public static string getStatsString (int i)
-		{
-			/*string statsstring = string.Format("BEGIN TRANSACTION;" +
-									"UPDATE  [dbo].[WeeklyStats] WITH(UPDLOCK, SERIALIZABLE)" + "" +
-										"SET [web_name] = '{1}'" +
-										",[team] = '{3}'" +
-										",[opposition] = '{4}'" +
-										",[goals_scored] = {5}" +
-										",[assists] = {6}" +
-										",[shots] = {7}" +
-										",[xG] = {8}" +
-										",[xA] = {9}" +
-										",[xGBuildup] = {10}" +
-										",[xGChain] = {11}" +
-										",[minutes] = {12}" +
-										",[team_h_score] = {13}" +
-										",[team_a_score] = {14}" +
-										",[was_home] = {15}" +
-										",[total_points] = {16}" +
-										",[value] = {17}" +
-										",[transfers_balance] = {18}" +
-										",[selected] = {19}" +
-										",[transfers_in] = {20}" +
-										",[transfers_out] = {21}" +
-										",[clean_sheets] = {22}" +
-										",[goals_conceded] = {23}" +
-										",[own_goals] = {24}" +
-										",[penalties_saved] = {25}" +
-										",[penalties_missed] = {26}" +
-										",[yellow_cards] = {27}" +
-										",[red_cards] = {28}" +
-										",[saves] = {29}" +
-										",[bonus] = {30}" +
-										",[bps] = {31}" +
-										",[influence] = {32}" +
-										",[creativity] = {33}" +
-										",[threat] = {34}" +
-										",[ict_index] = {35}" +
-										",[key_passes] = {36}" +
-										",[npxg] = {37}" +
-										",[npg] = {38}" +
-										"WHERE [ID] = {0} and [round] = {2}; " +
-									"IF @@ROWCOUNT = 0 " +
-									"BEGIN " +
-									"INSERT [dbo].[WeeklyStats] ([ID],[web_name],[round],[team],[opposition],[goals_scored],[assists],[shots],[xG],[xA],[xGBuildup],[xGChain],[minutes],[team_h_score],[team_a_score]" +
-									",[was_home],[total_points],[value],[transfers_balance],[selected],[transfers_in],[transfers_out],[clean_sheets],[goals_conceded],[own_goals],[penalties_saved]" +
-									",[penalties_missed],[yellow_cards],[red_cards],[saves],[bonus],[bps],[influence],[creativity],[threat],[ict_index],[key_passes],[npxg],[npg]) " +
-									"VALUES ({0},'{1}', {2}, '{3}', '{4}', {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20}, {21}, {22}, {23}, {24}, {25}" +
-									", {26}, {27}, {28}, {29}, {30}, {31}, {32}, {33}, {34}, {35}, {36}, {37}, {38});" +
-									"END " +
-									"COMMIT TRANSACTION; ", GWStats[i].player_id, GWStats[i].web_name.Replace("'", "''"), GWStats[i].round, GWStats[i].team, GWStats[i].opposition, GWStats[i].goals_scored, GWStats[i].assists
-									, GWStats[i].shots == null ? 0 : GWStats[i].shots
-									, GWStats[i].xG == null ? 0 : GWStats[i].xG
-									, GWStats[i].xA == null ? 0 : GWStats[i].xA
-									, GWStats[i].xGBuildup == null ? 0 : GWStats[i].xGBuildup
-									, GWStats[i].xGChain == null ? 0 : GWStats[i].xGChain
-									, GWStats[i].minutes, GWStats[i].team_h_score, GWStats[i].team_a_score, GWStats[i].was_home, GWStats[i].total_points
-									, GWStats[i].value, GWStats[i].transfers_balance, GWStats[i].selected, GWStats[i].transfers_in, GWStats[i].transfers_out, GWStats[i].clean_sheets, GWStats[i].goals_conceded
-									, GWStats[i].own_goals, GWStats[i].penalties_saved, GWStats[i].penalties_missed, GWStats[i].yellow_cards, GWStats[i].red_cards, GWStats[i].saves, GWStats[i].bonus, GWStats[i].bps
-									, GWStats[i].influence, GWStats[i].creativity, GWStats[i].threat, GWStats[i].ict_index, GWStats[i].key_passes == null ? 0 : GWStats[i].key_passes
-									, GWStats[i].npxG == null ? 0 : GWStats[i].npxG
-									, GWStats[i].npg == null ? 0 : GWStats[i].npg);
-
-			return statsstring;*/
-			return "hello world";
-		}
-
 		public static string getDFCString(int i)
 		{
 			string DFCString = string.Format("BEGIN TRANSACTION;" +
@@ -580,15 +509,16 @@ namespace FantasyPL
 		{
 			string playername = playerNames[hist[i].element];
 			string GWString = string.Format("BEGIN TRANSACTION;" +
-									"INSERT INTO [dbo].[GWHistory]" +
+									" IF NOT EXISTS( SELECT 1 FROM [dbo].[GWHistory] WHERE [element] = {0} AND [fixture] = {2})" +
+									"BEGIN " +
+									" INSERT INTO [dbo].[GWHistory]" +
 									"([element],[player_name],[fixture],[opponent_team],[total_points],[was_home],[minutes],[goals_scored],[assists],[clean_sheets]" +
 									",[goals_conceded],[own_goals],[penalties_saved],[penalties_missed],[yellow_cards],[red_cards],[saves],[bonus]" +
 									",[bps],[influence],[creativity],[threat],[ict_index],[value],[transfers_balance],[selected],[transfers_in],[transfers_out])" +
-									"VALUES" +
-									"({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20}, {21}, {22}, {23}, {24}, {25}, {26}, {27})" +
-									"WHERE NOT EXISTS(SELECT * FROM[dbo].[GWHistory] WHERE[element] = {0}" +
-									"AND[fixture] = {2}) " +
-									"COMMIT TRANSACTION; ", hist[i].element, playername, hist[i].fixture, hist[i].opponent_team, hist[i].total_points, hist[i].was_home, hist[i].minutes
+									" VALUES " +
+									"({0}, '{1}', {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20}, {21}, {22}, {23}, {24}, {25}, {26}, {27})" +
+									" END; " +
+									"COMMIT TRANSACTION; ", hist[i].element, playername.Replace("'", "''"), hist[i].fixture, hist[i].opponent_team, hist[i].total_points, Convert.ToByte(hist[i].was_home), hist[i].minutes
 									, hist[i].goals_scored, hist[i].assists, hist[i].clean_sheets, hist[i].goals_conceded, hist[i].own_goals, hist[i].penalties_saved, hist[i].penalties_missed
 									, hist[i].yellow_cards, hist[i].red_cards, hist[i].saves, hist[i].bonus, hist[i].bps, hist[i].influence, hist[i].creativity, hist[i].threat, hist[i].ict_index
 									, hist[i].value, hist[i].transfers_balance, hist[i].selected, hist[i].transfers_in, hist[i].transfers_out);
@@ -604,16 +534,9 @@ namespace FantasyPL
 				case FPL.LoadType.EVENTS: //Event updates
 					queryString = getEventsString(i);
 					break;
-
-
 				case FPL.LoadType.PLAYERS:
 					queryString = getElementsString(i);
 					break;
-
-				case FPL.LoadType.STATS:
-					queryString = getStatsString(i);
-					break;
-
 				case FPL.LoadType.DFC:
 					queryString = getDFCString(i);
 					break;

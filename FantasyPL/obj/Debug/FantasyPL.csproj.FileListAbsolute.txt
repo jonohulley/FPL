@@ -8,3 +8,13 @@ C:\Users\Jonathan.ESTUARY\source\repos\FantasyPL\FantasyPL\obj\Debug\FantasyPL.c
 C:\Users\Jonathan.ESTUARY\source\repos\FantasyPL\FantasyPL\obj\Debug\FantasyPL.csproj.CopyComplete
 C:\Users\Jonathan.ESTUARY\source\repos\FantasyPL\FantasyPL\obj\Debug\FantasyPL.exe
 C:\Users\Jonathan.ESTUARY\source\repos\FantasyPL\FantasyPL\obj\Debug\FantasyPL.pdb
+C:\Users\Jonathan.ESTUARY\Documents\GitHub\FPL\FantasyPL\bin\Debug\FantasyPL.exe.config
+C:\Users\Jonathan.ESTUARY\Documents\GitHub\FPL\FantasyPL\bin\Debug\FantasyPL.exe
+C:\Users\Jonathan.ESTUARY\Documents\GitHub\FPL\FantasyPL\bin\Debug\FantasyPL.pdb
+C:\Users\Jonathan.ESTUARY\Documents\GitHub\FPL\FantasyPL\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Jonathan.ESTUARY\Documents\GitHub\FPL\FantasyPL\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Jonathan.ESTUARY\Documents\GitHub\FPL\FantasyPL\obj\Debug\FantasyPL.csprojAssemblyReference.cache
+C:\Users\Jonathan.ESTUARY\Documents\GitHub\FPL\FantasyPL\obj\Debug\FantasyPL.csproj.CoreCompileInputs.cache
+C:\Users\Jonathan.ESTUARY\Documents\GitHub\FPL\FantasyPL\obj\Debug\FantasyPL.csproj.CopyComplete
+C:\Users\Jonathan.ESTUARY\Documents\GitHub\FPL\FantasyPL\obj\Debug\FantasyPL.exe
+C:\Users\Jonathan.ESTUARY\Documents\GitHub\FPL\FantasyPL\obj\Debug\FantasyPL.pdb
