@@ -8,32 +8,39 @@ using System.Net;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using System.Configuration;
+using System.Xml;
+using Npgsql;
 
 namespace FantasyPL
 {
 	class Program
 	{
 		private static OleDbConnection primaryDatabaseConnection = new OleDbConnection();
+		private static NpgsqlConnection con = new NpgsqlConnection();
 		private static FPL.Static listfull;
 		private static FPL.FullLeague fullLeague;
 		public static Dictionary<int, string> teamNames = new Dictionary<int, string>();
 		public static Dictionary<int, string> positionNames = new Dictionary<int, string>();
 		public static Dictionary<int, string> playerNames = new Dictionary<int, string>();
 		public static List<int> PlayersToCheck = new List<int>();
-		
 
+		public static string PostGresql;
+		public static string MSSQL;
 
 
 		public static void Main(string[] args)
 		{
 
+			populateConnectionsfromXML();
 			populateLeague();
 			populateListful();
 			setDictionaries();
 			populateGWData();
 			updatePlayerInfo();
-			writeEventsToDB();
+			//writeEventsToDB();
 			Console.WriteLine();
+
 
 		}
 
@@ -51,7 +58,7 @@ namespace FantasyPL
 
 		public static void populateGWData()
 		{
-			foreach(var player in PlayersToCheck)
+			foreach (var player in PlayersToCheck)
 			{
 				FPL.GWData GWPlayerData = populateStats(player);
 				WriteGWToDB(GWPlayerData);
@@ -60,30 +67,30 @@ namespace FantasyPL
 
 		public static void WriteGWToDB(FPL.GWData GWPlayerData)
 		{
-			if (File.Exists("OTSPrimary.UDL"))
+			//primaryDatabaseConnection.ConnectionString = PostGresql;
+			con.ConnectionString = PostGresql;
+			try
 			{
-				primaryDatabaseConnection.ConnectionString = @"FILE NAME=OTSPrimary.UDL";
-				try
+				//primaryDatabaseConnection.Open();
+				con.Open();
+				for (int i = 0; i < GWPlayerData.history.Length; i++)
 				{
-					primaryDatabaseConnection.Open();
-					for (int i = 0; i < GWPlayerData.history.Length ; i++)
-					{
-						string CommandText = getGWStatsString(i, GWPlayerData.history);
-						OleDbCommand updatePlayers = new OleDbCommand();
-						updatePlayers.Connection = primaryDatabaseConnection;
-						updatePlayers.CommandText = CommandText;
-						int NumRows = updatePlayers.ExecuteNonQuery();
-					}
-					primaryDatabaseConnection.Close();
+					string CommandText = getGWStatsString(i, GWPlayerData.history);
+
+					NpgsqlCommand updatePlayers = new NpgsqlCommand(CommandText, con);
+					updatePlayers.ExecuteNonQuery();
+					
+					/*OleDbCommand updatePlayers = new OleDbCommand();
+					updatePlayers.Connection = primaryDatabaseConnection;
+					updatePlayers.CommandText = CommandText;
+					int NumRows = updatePlayers.ExecuteNonQuery();*/
 				}
-				catch (Exception E)
-				{
-					Console.WriteLine("Exception " + E.Message + " Stack trace " + E.StackTrace);
-				}
+				//primaryDatabaseConnection.Close();
+				con.Close();
 			}
-			else
+			catch (Exception E)
 			{
-				Console.WriteLine("Cannot load udl");
+				Console.WriteLine("Exception " + E.Message + " Stack trace " + E.StackTrace);
 			}
 		}
 
@@ -117,24 +124,24 @@ namespace FantasyPL
 		public static void setDictionaries()
 		{
 			//set teams
-			foreach( var team in listfull.teams)
+			foreach (var team in listfull.teams)
 			{
 				teamNames.Add(team.id, team.name);
 			}
 
 			//set positions
-			foreach(var position in listfull.element_types)
+			foreach (var position in listfull.element_types)
 			{
 				positionNames.Add(position.id, position.singular_name);
 			}
 
 			//set players
-			foreach(var player in listfull.elements)
+			foreach (var player in listfull.elements)
 			{
 				playerNames.Add(player.id, player.web_name);
 
 				//add some to PlayersToCheck
-				if(player.minutes > 500)
+				if (player.minutes > 500)
 				{
 					PlayersToCheck.Add(player.id);
 				}
@@ -145,16 +152,16 @@ namespace FantasyPL
 		public static void updatePlayerInfo()
 		{
 			//Update player fields
-			foreach(var player in listfull.elements)
+			foreach (var player in listfull.elements)
 			{
 				player.position = positionNames[player.element_type];
 				player.team_name = teamNames[player.team];
 			}
 
 			//update events with player names instead of IDs
-			foreach(var evento in listfull.events)
+			foreach (var evento in listfull.events)
 			{
-				if(evento.most_selected != null)
+				if (evento.most_selected != null)
 				{
 					int mostsel = evento.most_selected ?? default(int);
 					evento.most_selected_name = playerNames[mostsel];
@@ -177,12 +184,13 @@ namespace FantasyPL
 				}
 				if (evento.most_vice_captained != null)
 				{
-					int mostvc = evento.most_vice_captained?? default(int);
+					int mostvc = evento.most_vice_captained ?? default(int);
 					evento.most_vice_captained_name = playerNames[mostvc];
 				}
-				foreach(var chips in evento.chip_plays)
+				foreach (var chips in evento.chip_plays)
 				{
-					switch (chips.chip_name){
+					switch (chips.chip_name)
+					{
 						case "bboost":
 							evento.bboost = chips.num_played;
 							break;
@@ -210,7 +218,7 @@ namespace FantasyPL
 					primaryDatabaseConnection.Open();
 
 					//events
-					for(int i = 0; i < listfull.events.Count; i++)
+					for (int i = 0; i < listfull.events.Count; i++)
 					{
 						string CommandText = getQueryString(FPL.LoadType.EVENTS, i);
 						OleDbCommand updatePlayers = new OleDbCommand();
@@ -218,8 +226,8 @@ namespace FantasyPL
 						updatePlayers.CommandText = CommandText;
 						int NumRows = updatePlayers.ExecuteNonQuery();
 					}
-					
-					for(int i = 0; i < listfull.elements.Count; i++)
+
+					for (int i = 0; i < listfull.elements.Count; i++)
 					{
 						string CommandText = getQueryString(FPL.LoadType.PLAYERS, i);
 						OleDbCommand updatePlayers = new OleDbCommand();
@@ -239,7 +247,7 @@ namespace FantasyPL
 						}
 					}*/
 
-					for(int i = 0; i < fullLeague.standings.results.Count; i++)
+					for (int i = 0; i < fullLeague.standings.results.Count; i++)
 					{
 						string CommandText = getQueryString(FPL.LoadType.DFC, i);
 						OleDbCommand updatePlayers = new OleDbCommand();
@@ -247,7 +255,7 @@ namespace FantasyPL
 						updatePlayers.CommandText = CommandText;
 						int NumRows = updatePlayers.ExecuteNonQuery();
 					}
-					
+
 
 				}
 				catch (Exception E)
@@ -262,7 +270,7 @@ namespace FantasyPL
 			}
 		}
 
-		public static string getEventsString (int i)
+		public static string getEventsString(int i)
 		{
 			string eventstring = string.Format("BEGIN TRANSACTION;" +
 									"UPDATE  [dbo].[Events] WITH(UPDLOCK, SERIALIZABLE)" + "" +
@@ -307,7 +315,7 @@ namespace FantasyPL
 			return eventstring;
 		}
 
-		public static string getElementsString (int i)
+		public static string getElementsString(int i)
 		{
 			string elementstring = string.Format("BEGIN TRANSACTION;" +
 									"UPDATE  [dbo].[Players] WITH(UPDLOCK, SERIALIZABLE)" + "" +
@@ -501,14 +509,31 @@ namespace FantasyPL
 									"COMMIT TRANSACTION; ", fullLeague.standings.results[i].id, fullLeague.standings.results[i].event_total, fullLeague.standings.results[i].player_name.Replace("'", "''"),
 									fullLeague.standings.results[i].rank, fullLeague.standings.results[i].last_rank, fullLeague.standings.results[i].rank_sort, fullLeague.standings.results[i].total,
 									fullLeague.standings.results[i].entry, fullLeague.standings.results[i].entry_name.Replace("'", "''"));
-			
+
 			return DFCString;
 		}
 
 		public static string getGWStatsString(int i, FPL.History[] hist)
 		{
 			string playername = playerNames[hist[i].element];
-			string GWString = string.Format("BEGIN TRANSACTION;" +
+
+			string GWString = string.Format("BEGIN;" +
+			"INSERT INTO GWHistory" +
+			"(element, player_name, fixture, opponent_team, total_points, was_home, minutes, goals_scored, assists, clean_sheets" +
+			", goals_conceded, own_goals, penalties_saved, penalties_missed, yellow_cards, red_cards, saves, bonus" +
+			", bps, influence, creativity, threat, ict_index, value, transfers_balance, selected, transfers_in, transfers_out)" +
+			"VALUES" +
+			"({0}, '{1}', {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20}, {21}, {22}, {23}, {24}, {25}, {26}, {27})" +
+			"ON CONFLICT DO NOTHING;" +
+			"COMMIT; ", hist[i].element, playername.Replace("'", "''"), hist[i].fixture, hist[i].opponent_team, hist[i].total_points, Convert.ToByte(hist[i].was_home), hist[i].minutes
+									, hist[i].goals_scored, hist[i].assists, hist[i].clean_sheets, hist[i].goals_conceded, hist[i].own_goals, hist[i].penalties_saved, hist[i].penalties_missed
+									, hist[i].yellow_cards, hist[i].red_cards, hist[i].saves, hist[i].bonus, hist[i].bps, hist[i].influence, hist[i].creativity, hist[i].threat, hist[i].ict_index
+									, hist[i].value, hist[i].transfers_balance, hist[i].selected, hist[i].transfers_in, hist[i].transfers_out);
+
+
+
+
+			string GWString2 = string.Format("BEGIN TRANSACTION;" +
 									" IF NOT EXISTS( SELECT 1 FROM [dbo].[GWHistory] WHERE [element] = {0} AND [fixture] = {2})" +
 									"BEGIN " +
 									" INSERT INTO [dbo].[GWHistory]" +
@@ -548,5 +573,34 @@ namespace FantasyPL
 			return queryString;
 		}
 
+		public static void populateConnectionsfromXML()
+		{
+			XmlReader xmlReader = XmlReader.Create(@"Config\config.xml", new XmlReaderSettings() { CloseInput = true });
+
+			try
+			{
+				while (xmlReader.Read())
+				{
+					if ((xmlReader.NodeType == XmlNodeType.Element))
+					{
+
+						switch (xmlReader.Name)
+						{
+							case "PostGres":
+								PostGresql = xmlReader.GetAttribute("value");
+								break;
+
+							case "LocalSQL":
+								MSSQL = xmlReader.GetAttribute("value");
+								break;
+						}
+					}
+				}
+			}
+			catch (Exception E)
+			{
+				Console.WriteLine("Exception " + E.Message + " Stack trace " + E.StackTrace);
+			}
+		}
 	}
 }
