@@ -74,10 +74,10 @@ namespace FantasyPL
 			return elementstring;
 		}
 
-		public static string getDFCString(FPL.Result player)
+		public static string getLeagueString(FPL.Result player)
 		{
 			string DFCString = string.Format("BEGIN TRANSACTION;" +
-			"INSERT INTO dashforcashrank " +
+			"INSERT INTO league " +
 			"(id, event_total, player_name, rank, last_rank, rank_sort, total, entry, entry_name)" +
 			"VALUES" +
 			"({0},{1},'{2}',{3},{4},{5},{6},{7},'{8}')" +

@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<userSettings>
+  <PostGres
+    value="Host=localhost;Port=8080;Username=user;Password=pword;Database=postgres" />
+  <LeagueCode
+	value="123456" />
+</userSettings>

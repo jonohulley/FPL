@@ -24,7 +24,7 @@ namespace FantasyPL
 		public static List<int> PlayersToCheck = new List<int>();
 
 		public static string PostGresql;
-		public static string MSSQL;
+		public static string LeagueCode;
 
 
 		public static void Main(string[] args)
@@ -43,13 +43,13 @@ namespace FantasyPL
 
 		public static void populateLeague()
 		{
-			Console.WriteLine("Fetching Dash for Cash data...");
+			Console.WriteLine("Fetching League data...");
 			string htmlCode;
 			FPL.FullLeague fullLeague;
 			using (WebClient client = new WebClient())
 			{
 				client.Encoding = Encoding.UTF8;
-				htmlCode = client.DownloadString(@"https://fantasy.premierleague.com/api/leagues-classic/319719/standings/?page_new_entries=1&page_standings=1&phase=1");
+				htmlCode = client.DownloadString(@"https://fantasy.premierleague.com/api/leagues-classic/"+LeagueCode+"/standings/?page_new_entries=1&page_standings=1&phase=1");
 			}
 			fullLeague = JsonConvert.DeserializeObject<FPL.FullLeague>(htmlCode);
 			WriteDFCToDB(fullLeague);
@@ -88,14 +88,14 @@ namespace FantasyPL
 
 		public static void WriteDFCToDB(FPL.FullLeague fullLeague)
 		{
-			Console.WriteLine("Writing Dash for Cash to DB...");
+			Console.WriteLine("Writing League to DB...");
 			con.ConnectionString = PostGresql;
 			try
 			{
 				con.Open();
 				for (int i = 0; i < fullLeague.standings.results.Count; i++)
 				{
-					string CommandText = Script.getDFCString(fullLeague.standings.results[i]);
+					string CommandText = Script.getLeagueString(fullLeague.standings.results[i]);
 					NpgsqlCommand updatePlayers = new NpgsqlCommand(CommandText, con);
 					updatePlayers.ExecuteNonQuery();
 				}
@@ -283,8 +283,8 @@ namespace FantasyPL
 								PostGresql = xmlReader.GetAttribute("value");
 								break;
 
-							case "LocalSQL":
-								MSSQL = xmlReader.GetAttribute("value");
+							case "LeagueCode":
+								LeagueCode = xmlReader.GetAttribute("value");
 								break;
 						}
 					}
