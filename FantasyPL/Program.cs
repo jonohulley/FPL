@@ -30,10 +30,10 @@ namespace FantasyPL
 		public static void Main(string[] args)
 		{
 			populateConnectionsfromXML();
-			populateLeague();
+			//populateLeague();
 			populateListful();
 			setDictionaries();
-			populateGWData();
+			//populateGWData();
 			updatePlayerInfo();
 			WriteElementsToDB();
 			writeEventsToDB();
@@ -247,6 +247,7 @@ namespace FantasyPL
 
 		public static void writeEventsToDB()
 		{
+			Console.WriteLine("Writing GameWeeks to DB...");
 			con.ConnectionString = PostGresql;
 			try
 			{

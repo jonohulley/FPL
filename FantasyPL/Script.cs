@@ -66,7 +66,8 @@ namespace FantasyPL
 					, player.total_points, player.transfers_in, player.transfers_in_event, player.transfers_out, player.transfers_out_event
 					, player.value_form, player.value_season, player.minutes, player.goals_scored, player.assists, player.clean_sheets, player.goals_conceded
 					, player.own_goals, player.penalties_safed, player.penalties_missed, player.yellow_cards, player.red_cards
-					, player.saves, player.bonus, player.bps, player.influence, player.creativity, player.threat, player.creativity_rank_type
+					, player.saves, player.bonus, player.bps, player.influence, player.creativity, player.threat,player.ict_index, player.influence_rank, player.influence_rank_type
+					, player.creativity_rank, player.creativity_rank_type
 					, player.corners_and_indirect_freekicks_order == null ? 100 : player.corners_and_indirect_freekicks_order, player.corners_and_indirect_freekicks_text
 					, player.direct_freekicks_order == null ? 100 : player.direct_freekicks_order, player.direct_freekicks_text
 					, player.penalties_order == null ? 100 : player.penalties_order, player.penalties_text, player.cost_change_start);
